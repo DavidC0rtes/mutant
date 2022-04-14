@@ -3,3 +3,6 @@
 **/.idea/shelf
 **/*.iml
 *.iml
+**/src/gen
+**/tags
+tags
