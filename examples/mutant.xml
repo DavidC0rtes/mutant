@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+<declaration>
+const int N=4;
+typedef int[0,N-1] pid_t;
+chan done, ready, run, stop;
+clock time;
+const int E[pid_t]={20,20,10,10};
+const int L[pid_t]={40,20,10,10};
+const int D[pid_t]={40,20,10,10};
+const int C[pid_t]={5,4,2,1};
+const int P[pid_t]={1,2,3,4};
+pid_t queue[pid_t];
+int[0,N] len=N;
+void initialize()null
+pid_t head()null
+bool isEmpty()null
+void add(502 272 262 223 145)null
+void remove()null
+</declaration>
+<system>
+
+system Task,Scheduler,Scheduler;
+gantt{Task(i:pid_t):Task(i).Ready-&gt;16,Task(i).Running-&gt;2,Task(i).Blocked-&gt;3;}
+</system>
+</nta>

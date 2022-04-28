@@ -2,7 +2,6 @@ import gen.NTALexer;
 import gen.NTAParser;
 import gen.NTAParserBaseListener;
 import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.misc.OrderedHashMap;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -14,16 +13,20 @@ import java.util.List;
 
 public class TestNTAListener extends NTAParserBaseListener {
 
+
+
     public void exitSystemDecl(NTAParser.SystemDeclContext ctx) {
-        List identifiers = ctx.IDENTIFIER();
-        List<TerminalNode> processes = identifiers.subList(1, identifiers.size());
+        List<TerminalNode> identifiers = ctx.IDENTIFIER();
+        //List<TerminalNode> processes = identifiers.subList(0, identifiers.size());
 
         /**
          * Ejemplo: System Foo; -> System Foo Foo;
+         * usar strings (string builder)
          */
+        System.out.println(ctx.getToken(NTALexer.COMMA,0));
         ctx.children.add(
-                ctx.children.size() - 2, // En la penúltima posición de los hijos...
-                processes.get(processes.size() - 1) // ...duplicar el último proceso.
+                ctx.children.size() - 1, // En la penúltima posición de los hijos...
+                ctx.getToken(NTALexer.COMMA,0) // ...duplicar el último proceso.
         );
     }
 

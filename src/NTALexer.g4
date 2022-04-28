@@ -14,13 +14,14 @@ CharRef			:	'&#' DIGIT+ ';'
 				|	'&#x' HEXDIGIT+ ';'
 				;
 
+
 SEA_WS			:	(' '|'\t'|'\r'? '\n')+ ;
 
 OPEN_DECLARATION:	'<' [ \t\r\n]* 'declaration' [ \t\r\n]* '>' -> pushMode(EXPRESSION) ;
 
-OPEN_PARAMETER  :   '<' [ \t\r\n]* 'parameter' [ \t\r\n]* '>'   -> pushMode(EXPRESSION) ;
+OPEN_PARAMETER	:   '<' [ \t\r\n]* 'parameter' [ \t\r\n]* '>'   -> pushMode(EXPRESSION) ;
 
-OPEN_GUARD      :   LBLSTART GUARD LBLCOORD [ \t\r\n]* '>'      -> pushMode(EXPRESSION) ;
+OPEN_GUARD		:   LBLSTART GUARD LBLCOORD [ \t\r\n]* '>'      -> pushMode(EXPRESSION) ;
 
 OPEN_SYNC       :   LBLSTART SYNCHRONIZE LBLCOORD [ \t\r\n]* '>'-> pushMode(EXPRESSION) ;
 

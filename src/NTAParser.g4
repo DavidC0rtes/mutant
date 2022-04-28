@@ -199,11 +199,13 @@ anything    :   chardata?
 
 // System definition and Gantt Charts
 system		:	OPEN_SYSTEM
-                    (declarations misc*)* (process+ misc*)? (systemDecl misc*) (ganttDecl misc*)?
+                    (declarations misc*)* processes? (systemDecl misc*) (ganttDecl misc*)?
                 CLOSE_SYSTEM
 			;
 
+processes	:	process+ misc* ;
 process		:	IDENTIFIER ASSIGN IDENTIFIER '(' arguments ')' ';' ;
+
 
 systemDecl	:	SYSTEMEXPR IDENTIFIER ((',' | '<') IDENTIFIER)* ';' ;
 
