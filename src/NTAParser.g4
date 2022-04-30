@@ -39,28 +39,32 @@ declarations:	variableDecl	# VarDecl
 			|   chanPriority    # ChannelPriority
 			;
 
-expr		:	IDENTIFIER
-			|	NAT
-			|	DOT
-			|	expr '[' expr ']'
-			|	expr '\''
-			|	'(' expr ')'
-			|	expr '++' | '++' expr
-			|	expr '--' | '--' expr
-			|	expr ASSIGN expr
-			|	(MINUS|ADD|'!'|'not') expr
-			|	expr ('+'|'-'|'*'|'&#8725;'|'%'|'and'|'or'|'imply'
+expr		:	IDENTIFIER									# IDExpr
+			|	NAT											# Natural
+			|	DOT											# Dot
+			|	expr '[' expr ']'							# BracketExpr
+			|	expr '\''									# QuoteExpr
+			|	'(' expr ')'								# ParenExpr
+			|	expr '++'									# Increment
+			|	'++' expr									# Increment
+			|	expr '--' 									# Decrement
+			|	'--' expr									# Decrement
+			|	expr ASSIGN expr							# AssignExpr
+			|	op = (MINUS|ADD|'!'|'not') expr				# UnaryExpr
+			|	expr op=('+'|'-'|'*'|'&#8725;'|'%'|'and'|'or'|'imply'
 					|'=='|'&lt;'| LESSEQ |'!='|GREATEEQ|'&gt;'|'|'|'^'|RSHIFT
-					|LSHIFT|LAND| MIN | MAX |'||') expr
-			|	expr '?' expr ':' expr
-			|   expr ('?'|'!')
-			|	expr '.' IDENTIFIER
-			|	expr '(' arguments ')'
-			|	expr (MINUS|ADD) expr
-			|	'forall' '(' IDENTIFIER ':' type ')' expr
-			|	'exists' '(' IDENTIFIER ':' type ')' expr
-			|	'sum' '(' IDENTIFIER ':' type ')' expr
-			|	'deadlock' | TRUE | FALSE
+					|LSHIFT|LAND| MIN | MAX |'||') expr		# BinaryExpr
+			|	expr '?' expr ':' expr						# TernaryIf
+			|   expr op=('?'|'!')							# UnaryExpr
+			|	expr '.' IDENTIFIER							# DotExpr
+			|	expr '(' arguments ')'						# InvokeExpr
+			|	expr op=(MINUS|ADD) expr					# MinusAddExpr
+			|	'forall' '(' IDENTIFIER ':' type ')' expr	# ForAll
+			|	'exists' '(' IDENTIFIER ':' type ')' expr	# ExistExpr
+			|	'sum' '(' IDENTIFIER ':' type ')' expr		# SumExpr
+			|	'deadlock' 									# DeadlockExpr
+			| TRUE											# TruthExpr
+			| FALSE											# TruthExpr
 			;
 
 arguments	:	(expr (',' expr)*)? ;
@@ -101,7 +105,7 @@ initialiser	:	expr
 typeDecl	:	TYPEDEF type IDENTIFIER arrayDecl* (',' IDENTIFIER arrayDecl*)* ';' ;
 
 
-function	:	type IDENTIFIER '(' parameters* ')' block ;
+function	:	type IDENTIFIER '(' parameters? ')' block ;
 
 paramTag    :   OPEN_PARAMETER parameters CLOSE_PARAMETER ;
 
@@ -113,7 +117,8 @@ block		:	'{' localDecl* statement* '}' ;
 
 localDecl	:	typeDecl | variableDecl ;
 
-statement	:	block | SEMICOLON
+statement	:	block
+			|	SEMICOLON
 			|	expr ';'
 			|	forLoop
 			|	iteration

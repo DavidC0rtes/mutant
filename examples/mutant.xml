@@ -3,7 +3,7 @@
 <nta>
 <declaration>
 const int N=4;
-typedef int[0,N-1] pid_t;
+typedef int[0,N-1]pid_t;
 chan done, ready, run, stop;
 clock time;
 const int E[pid_t]={20,20,10,10};
@@ -13,15 +13,47 @@ const int C[pid_t]={5,4,2,1};
 const int P[pid_t]={1,2,3,4};
 pid_t queue[pid_t];
 int[0,N] len=N;
-void initialize()null
-pid_t head()null
-bool isEmpty()null
-void add(502 272 262 223 145)null
-void remove()null
+void initialize(){
+	bool picked[pid_t];
+	for(i:pid_t){
+	int max=-1, t=-1;
+	for(j:pid_t){
+	if(!picked[j]&amp;&amp;P[j]&gt;max) {
+	null
+	null
+}
+}
+	null
+	null
+}
+}
+pid_t head(){
+	return queue[0];
+}
+bool isEmpty(){
+	return len==0;
+}
+void add(pid_t id ){
+	pid_t i, tmp;
+	null
+	for(i=len;i&gt;0&amp;&amp;P[queue[i]]&gt;P[queue[i-1]];--i){
+	null
+	null
+	null
+}
+	null
+}
+void remove(){
+	int i;
+	for(i=0;i+1&lt;N;++i){
+	null
+}
+	null
+}
 </declaration>
 <system>
 
-system Task,Scheduler,Scheduler;
+system Task,Scheduler,Task;
 gantt{Task(i:pid_t):Task(i).Ready-&gt;16,Task(i).Running-&gt;2,Task(i).Blocked-&gt;3;}
 </system>
 </nta>

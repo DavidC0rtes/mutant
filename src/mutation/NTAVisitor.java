@@ -3,13 +3,13 @@ package mutation;
 import gen.NTAParser;
 import gen.NTAParserBaseVisitor;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import util.VisitorHelper;
 
 import java.util.List;
 import java.util.Random;
 
-public class NTAVisitor extends NTAParserBaseVisitor<String> {
+public class NTAVisitor extends NTAParserBaseVisitor<String> implements VisitorHelper {
 
     private final boolean duplicateProcess;
 
@@ -49,14 +49,11 @@ public class NTAVisitor extends NTAParserBaseVisitor<String> {
 
     @Override
     public String visitVariableDecl(NTAParser.VariableDeclContext ctx) {
-        StringBuilder varDecl = new StringBuilder(visit(ctx.type()));
+        StringBuilder varDecl = new StringBuilder(visit(ctx.type()) + " ");
         List<NTAParser.VariableIDContext> varIds = ctx.variableID();
 
-        for (int i = 0; i < varIds.size(); i++){
-            varDecl.append(varIds.get(i).getText());
-            if (i < varIds.size() - 1)
-                varDecl.append(", ");
-        }
+        varDecl.append(extractChildren(varIds));
+
         return varDecl + ";";
     }
 
@@ -68,7 +65,7 @@ public class NTAVisitor extends NTAParserBaseVisitor<String> {
             type += ctx.prefix().getText() + " ";
         }
 
-        type += ctx.typeID().getText() + " ";
+        type += ctx.typeID().getText();
         return type;
     }
 
@@ -76,7 +73,8 @@ public class NTAVisitor extends NTAParserBaseVisitor<String> {
     public String visitTypeDeclaration(NTAParser.TypeDeclarationContext ctx) {
         StringBuilder toReturn = new StringBuilder(
                 ctx.typeDecl().TYPEDEF().getText() + " " +
-                visit(ctx.typeDecl().type()));
+                visit(ctx.typeDecl().type())
+        );
 
         List<NTAParser.ArrayDeclContext> arrayDecls = ctx.typeDecl().arrayDecl();
         toReturn.append(ctx.typeDecl().IDENTIFIER(0).getText());
@@ -86,7 +84,7 @@ public class NTAVisitor extends NTAParserBaseVisitor<String> {
             for (int i=0; i < arrayDecls.size(); i++) {
                 toReturn.append(arrayDecls.get(i).getText())
                         .append(" ")
-                        .append(ctx.typeDecl().IDENTIFIER(i+1));
+                        .append(ctx.typeDecl().IDENTIFIER(i+1).getText()); // there are n+1 identifiers.
 
                 if (i < arrayDecls.size() - 1)
                     toReturn.append(",");
@@ -98,16 +96,55 @@ public class NTAVisitor extends NTAParserBaseVisitor<String> {
 
     @Override
     public String visitFunction(NTAParser.FunctionContext ctx) {
-        String s = visit(ctx.type()) + ctx.IDENTIFIER();
+        String func = visit(ctx.type()) + " " + ctx.IDENTIFIER() + "(";
 
-        List params = ctx.parameters();
-        if (params != null ) {
-            String strParams = params.toString().replace("[","").replace("]", "");
-            s = s.concat("(").concat(strParams).concat(")");
+        if (ctx.parameters() != null)  {
+            func += visit(ctx.parameters());
+        }
+        func += ")" + visit(ctx.block());
+
+        return func;
+    }
+
+    @Override
+    public String visitParameters(NTAParser.ParametersContext ctx) {
+        String params = "";
+        String sep = "";
+        for (ParserRuleContext paramCtx : ctx.parameter()) {
+            params += sep.concat( visit(paramCtx) );
+            sep = ", ";
         }
 
-        s += visit(ctx.block());
-        return s;
+        return params;
+    }
+
+    @Override
+    public String visitParameter(NTAParser.ParameterContext ctx) {
+        String param = visit(ctx.type()) + " ";
+        if (ctx.BITAND() != null) {
+            param += ctx.BITAND().getText().concat(" ");
+        }
+        param += ctx.IDENTIFIER().getText().concat(" ");
+
+        param += extractChildren(ctx.arrayDecl());
+        return param;
+    }
+
+    @Override
+    public String visitBlock(NTAParser.BlockContext ctx) {
+        String block = "{\n";
+
+        if (ctx.localDecl() != null) {
+            for (NTAParser.LocalDeclContext lclCtx : ctx.localDecl())
+                block += "\t" + visit(lclCtx) + "\n";
+        }
+
+        if (ctx.statement() != null) {
+            for (NTAParser.StatementContext stmtCtx : ctx.statement())
+                block += "\t" + visit(stmtCtx) + "\n";
+        }
+
+        return block.concat("}");
     }
 
     @Override
@@ -118,6 +155,7 @@ public class NTAVisitor extends NTAParserBaseVisitor<String> {
                     flatChildren(ctx.ganttDecl()) + "\n"+
                 ctx.CLOSE_SYSTEM().getText();
     }
+
 
     @Override
      public String visitSystemDecl(NTAParser.SystemDeclContext ctx) {
@@ -138,6 +176,150 @@ public class NTAVisitor extends NTAParserBaseVisitor<String> {
         }
         return ctx.getText();
     }
+
+    @Override
+    public String visitForLoop(NTAParser.ForLoopContext ctx) {
+
+        String forLoop = "for("
+                +  visit(ctx.expr(0)) + ";"
+                +  visit(ctx.expr(1)) + ";"
+                +  visit(ctx.expr(2)) + ")"
+                +  visit(ctx.statement());
+
+        return forLoop;
+    }
+
+    @Override
+    public String visitIteration(NTAParser.IterationContext ctx) {
+        String iter = "for("
+                +  ctx.IDENTIFIER() + ":"
+                +  visit(ctx.type()) + ctx.CLOSE_PARENTESIS()
+                +  visit(ctx.statement());
+        return iter;
+    }
+
+    @Override
+    public String visitWhileLoop(NTAParser.WhileLoopContext ctx) {
+        String whileLoop = "while(" +  visit(ctx.expr()) + ")"
+                + visit(ctx.statement());
+
+        return whileLoop;
+    }
+
+    @Override
+    public String visitDoWhileLoop(NTAParser.DoWhileLoopContext ctx) {
+        String doWhile = "do " + visit(ctx.statement()) +
+                " while ("
+                + visit(ctx.expr())
+                + ")"
+                + ctx.SEMICOLON();
+
+        return doWhile;
+    }
+
+    @Override
+    public String visitIfStatement(NTAParser.IfStatementContext ctx) {
+        String ifStmt = "if(" + visit(ctx.expr()) + ") "
+                + visit(ctx.statement(0));
+
+        if (ctx.statement().size() == 2) {
+            ifStmt += " else " + visit(ctx.statement(1));
+        }
+
+        return ifStmt;
+    }
+    @Override
+    public String visitReturnStmnt(NTAParser.ReturnStmntContext ctx) {
+        String returnStmt = "return";
+
+        if (ctx.expr() != null)
+            returnStmt += " " + visit(ctx.expr());
+
+        return returnStmt.concat(";");
+    }
+
+    @Override
+    public String visitBracketExpr(NTAParser.BracketExprContext ctx) {
+        return visit(ctx.expr(0)) + "[" + visit(ctx.expr(1)) + "]";
+    }
+
+    @Override
+    public String visitQuoteExpr(NTAParser.QuoteExprContext ctx) {
+        return visit(ctx.expr()) + ctx.APOSTROPHE().getText();
+    }
+    @Override
+    public String visitParenExpr(NTAParser.ParenExprContext ctx) {
+        return "(" +  visit(ctx.expr()) + ")";
+    }
+
+    @Override
+    public String visitIncrement(NTAParser.IncrementContext ctx) {
+        return ctx.INCREMENT().getText() + visit(ctx.expr());
+    }
+
+    @Override
+    public String visitDecrement(NTAParser.DecrementContext ctx) {
+        return ctx.DECREMENT().getText() + visit(ctx.expr());
+    }
+
+    @Override
+    public String visitAssignExpr(NTAParser.AssignExprContext ctx) {
+        return visit(ctx.expr(0)) + ctx.ASSIGN().getText() + visit(ctx.expr(1));
+    }
+
+    @Override
+    public String visitUnaryExpr(NTAParser.UnaryExprContext ctx) {
+        return ctx.op.getText() + visit(ctx.expr());
+    }
+
+    @Override
+    public String visitBinaryExpr(NTAParser.BinaryExprContext ctx) {
+        return visit(ctx.expr(0)) + ctx.op.getText() + visit(ctx.expr(1));
+    }
+
+    @Override
+    public String visitTernaryIf(NTAParser.TernaryIfContext ctx) {
+        return visit(ctx.expr(0))
+                + " ? " + visit(ctx.expr(1))
+                + " : " + visit(ctx.expr(2));
+    }
+
+    @Override
+    public String visitDotExpr(NTAParser.DotExprContext ctx) {
+        return visit(ctx.expr()) + "." + ctx.IDENTIFIER().getText();
+    }
+
+    @Override
+    public String visitInvokeExpr(NTAParser.InvokeExprContext ctx) {
+        return visit(ctx.expr()) + "(" + visit(ctx.arguments()) + ")";
+    }
+
+    @Override
+    public String visitForAll(NTAParser.ForAllContext ctx) {
+        return "forall (" + ctx.IDENTIFIER() + ":" + visit(ctx.type()) + ") " + visit(ctx.expr());
+    }
+
+    @Override
+    public String visitSumExpr(NTAParser.SumExprContext ctx) {
+        return "sum (" + ctx.IDENTIFIER() + ":" + visit(ctx.type()) + ")" + visit(ctx.expr());
+    }
+
+    @Override
+    public String visitDeadlockExpr(NTAParser.DeadlockExprContext ctx) {
+        return ctx.DEADLOCK().getText();
+    }
+
+    @Override
+    public String visitIDExpr(NTAParser.IDExprContext ctx) { return ctx.getText(); }
+
+    @Override
+    public String visitNatural(NTAParser.NaturalContext ctx) { return ctx.getText(); }
+
+    @Override
+    public String visitTruthExpr(NTAParser.TruthExprContext ctx) { return ctx.getText(); }
+
+    @Override
+    public String visitDot(NTAParser.DotContext ctx) { return ctx.getText(); }
 
     /**
      * Helper method that receives a ParserRuleContext object that may be null, and "flattens" it out by
