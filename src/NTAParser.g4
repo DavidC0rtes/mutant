@@ -55,16 +55,16 @@ expr		:	IDENTIFIER									# IDExpr
 					|'=='|'&lt;'| LESSEQ |'!='|GREATEEQ|'&gt;'|'|'|'^'|RSHIFT
 					|LSHIFT|LAND| MIN | MAX |'||') expr		# BinaryExpr
 			|	expr '?' expr ':' expr						# TernaryIf
-			|   expr op=('?'|'!')							# UnaryExpr
+			|	expr op=('?'|'!')							# UnaryExpr
 			|	expr '.' IDENTIFIER							# DotExpr
 			|	expr '(' arguments ')'						# InvokeExpr
 			|	expr op=(MINUS|ADD) expr					# MinusAddExpr
 			|	'forall' '(' IDENTIFIER ':' type ')' expr	# ForAll
 			|	'exists' '(' IDENTIFIER ':' type ')' expr	# ExistExpr
 			|	'sum' '(' IDENTIFIER ':' type ')' expr		# SumExpr
-			|	'deadlock' 									# DeadlockExpr
-			| TRUE											# TruthExpr
-			| FALSE											# TruthExpr
+			|	'deadlock'									# DeadlockExpr
+			|	TRUE										# TruthExpr
+			|	FALSE										# TruthExpr
 			;
 
 arguments	:	(expr (',' expr)*)? ;
